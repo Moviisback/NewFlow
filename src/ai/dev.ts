@@ -1,0 +1,1 @@
+import '@/ai/flows/summarize-document.ts';

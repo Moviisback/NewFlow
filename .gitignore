@@ -1,0 +1,51 @@
+# Checkpoint V27.04.25R1
+# This checkpoint was created to mark a significant point
+# in the development process on April 27, 2025, Revision 1.
+# It is meant to serve as a fallback or restore point.
+
+# You can add more specific exclusions relevant to this checkpoint,
+# but be cautious not to exclude essential files required to restore.
+
+# Example: Exclude node_modules to save space (if you can regenerate them)
+node_modules/
+
+# Example: Exclude build artifacts (if you can rebuild them)
+.next/
+dist/
+
+# Example: Exclude temporary files or logs
+tmp/
+logs/
+
+<<<<<<< HEAD
+# Note: Be very careful about excluding .env or other sensitive files
+# which might be critical for restoring the application state.
+=======
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# IDE
+.genkit/*
+.idx/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.modified
+*.swp
+*.swo
+*~
+>>>>>>> b5e26cb44b197feeadb7dfd934042e622a9ab86f

@@ -1,0 +1,14 @@
+Troubleshooting Steps:
+
+1.  Go to the Firebase Console (https://console.firebase.google.com/).
+2.  Select your project (studyflow-db1e9).
+3.  Navigate to "Authentication" in the left-hand menu.
+4.  Click on the "Settings" tab.
+5.  In the "Authorized domains" section, make sure that these domains are listed:
+
+    *   `studyflow-db1e9.firebaseapp.com`
+    *   `6000-idx-studio-1744709065053.cluster-oayqgyglpfgseqclbygurw4xd4.cloudworkstations.dev` (This is likely your Cloud Workstations URL)
+
+If the second domain is not listed, add it using the "Add domain" button. Keep in mind that port numbers (e.g., :3000) are significant and need to be added explicitly.
+
+After adding and saving your domain, test the Google login again.

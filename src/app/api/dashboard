@@ -1,0 +1,24 @@
+// src/app/api/dashboard/route.ts
+import { NextResponse } from 'next/server';
+
+export async function GET() {
+  try {
+    // Replace this with your actual data fetching logic from the database
+    // For example, assuming you have functions to get document count and quiz stats
+    const documentCount = 0; //  await getDocumentCount();
+    const quizzesTaken = null; // await getQuizzesTaken();
+    const averageScore = quizzesTaken === null ? null : 85; //  await getAverageScore();
+
+    const dashboardData = {
+      documentCount: documentCount || null, // Return null if no documents
+      quizzesTaken: quizzesTaken,
+      averageScore: averageScore, // Return null if no quizzes taken
+    };
+    return NextResponse.json({ success: true, data: dashboardData });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, message: 'Failed to fetch dashboard data' },
+      { status: 500 }
+    );
+  }
+}

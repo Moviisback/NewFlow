@@ -1,0 +1,40 @@
+// src/app/api/documents/route.ts
+import { NextResponse } from 'next/server';
+
+// Mock data for development
+// Replace with actual data fetching logic from your database
+export async function GET() {
+  try {
+    const documents = [
+      {
+        id: '1',
+        name: 'JavaScript Fundamentals',
+        uploadDate: '2025-04-20T10:00:00Z',
+        pages: 25,
+        status: 'Completed'
+      },
+      {
+        id: '2',
+        name: 'React Hooks Guide',
+        uploadDate: '2025-04-22T14:30:00Z',
+        pages: 15,
+        status: 'Completed'
+      },
+      {
+        id: '3',
+        name: 'TypeScript Advanced Features',
+        uploadDate: '2025-04-24T09:15:00Z',
+        pages: 30,
+        status: 'Processing'
+      }
+    ];
+
+    return NextResponse.json(documents);
+  } catch (error: any) {
+    console.error('Error fetching documents:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch documents' },
+      { status: 500 }
+    );
+  }
+}
