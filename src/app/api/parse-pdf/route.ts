@@ -1,80 +1,70 @@
 // src/app/api/parse-pdf/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { PDFParserService } from '@/services/pdf-parser';
+import { Buffer } from 'buffer';
 
-export async function POST(request: Request) {
-  console.log('PDF parsing request received');
-  
+export async function POST(request: NextRequest) {
   try {
+    console.log('PDF parsing request received');
+    
+    // Check if the request is a valid FormData request
+    const contentType = request.headers.get('content-type') || '';
+    if (!contentType.includes('multipart/form-data')) {
+      return NextResponse.json(
+        { error: 'Invalid request format. Expected multipart/form-data.' },
+        { status: 400 }
+      );
+    }
+    
+    // Parse the form data
     const formData = await request.formData();
     const file = formData.get('file') as File;
-
+    
     if (!file) {
-      console.error('No file provided in the request');
       return NextResponse.json(
-        { error: 'No file provided' },
+        { error: 'No file provided.' },
         { status: 400 }
       );
     }
-
-    // Validate file type
-    if (!file.type.includes('pdf')) {
+    
+    console.log(`Received file: ${file.name}, ${file.size} bytes, ${file.type}`);
+    
+    // Check if the file is a PDF
+    if (file.type !== 'application/pdf') {
       return NextResponse.json(
-        { error: 'Invalid file type. Please upload a PDF file.' },
+        { error: 'File must be a PDF.' },
         { status: 400 }
       );
     }
-
-    console.log(`Processing PDF file: ${file.name}, size: ${file.size} bytes, type: ${file.type}`);
+    
+    // Read the file as an array buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     
-    try {
-      // Use the service to parse with fallback methods
-      const result = await PDFParserService.parseWithFallback(buffer);
-      
-      // Validate the content
-      if (result.text && PDFParserService.validatePDFContent(result.text)) {
-        console.log('Successfully parsed PDF with valid content');
-        return NextResponse.json({ 
-          text: result.text,
-          numpages: result.numpages,
-          info: result.info
-        });
-      } else {
-        // If we have an error from the service, return it
-        if (result.error) {
-          return NextResponse.json({ 
-            text: result.text || '',
-            error: result.error,
-            suggestion: result.suggestion
-          });
-        }
-        
-        // Otherwise, return a generic error
-        return NextResponse.json({ 
-          text: '',
-          error: 'Could not extract meaningful text from the PDF.',
-          suggestion: 'Ensure the PDF contains selectable text and is not a scanned image. For scanned documents, use OCR software first.'
-        });
-      }
-    } catch (parseError) {
-      console.error('PDF parsing failed:', parseError);
-      
-      return NextResponse.json({ 
-        text: '',
-        error: 'Failed to parse PDF. The file might be corrupted or password-protected.',
-        details: parseError instanceof Error ? parseError.message : 'Unknown error'
-      }, { status: 500 });
+    console.log(`Processing PDF: ${buffer.length} bytes`);
+    
+    // Parse the PDF
+    const result = await PDFParserService.parseWithFallback(buffer);
+    
+    // Validate the parsed content
+    const isValid = PDFParserService.validatePDFContent(result.text);
+    
+    if (!isValid && !result.error) {
+      result.error = 'PDF content could not be properly extracted. The file might contain only images or be heavily formatted.';
+      result.suggestion = 'Try a different document or convert this document to a more accessible format.';
     }
     
-  } catch (error: unknown) {
-    console.error('Request processing error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.log(`Parsing complete. Extracted ${result.text.length} characters.`);
+    console.log(`PDF has ${result.numpages} pages.`);
+    
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error('PDF parsing error:', error);
+    
     return NextResponse.json(
-      { 
-        error: 'Failed to process request', 
-        details: errorMessage
+      {
+        error: error instanceof Error ? error.message : 'An unexpected error occurred while parsing the PDF.',
+        suggestion: 'Try again with a different PDF file or check the server logs for more details.'
       },
       { status: 500 }
     );

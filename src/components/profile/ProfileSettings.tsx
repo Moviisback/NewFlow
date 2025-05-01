@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from "@/hooks/use-toast";
 import firebaseAuthService from '@/lib/auth-service';
-import { Icon } from '@/components/ui/icons';
+import { User, Settings, Shield } from 'lucide-react';
 
 import { GeneralSettingsTab } from './tabs/GeneralSettingsTab';
 import { ProfileTab } from './tabs/ProfileTab';
@@ -76,15 +76,15 @@ export const ProfileSettings = () => {
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="profile">
-            <Icon name="user" className="mr-2 h-4 w-4" />
+            <User className="mr-2 h-4 w-4" />
             Profile
           </TabsTrigger>
           <TabsTrigger value="general">
-            <Icon name="settings" className="mr-2 h-4 w-4" />
+            <Settings className="mr-2 h-4 w-4" />
             General
           </TabsTrigger>
           <TabsTrigger value="security">
-            <Icon name="shield" className="mr-2 h-4 w-4" />
+            <Shield className="mr-2 h-4 w-4" />
             Security
           </TabsTrigger>
         </TabsList>

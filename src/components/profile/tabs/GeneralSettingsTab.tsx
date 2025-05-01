@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Icon } from '@/components/ui/icons';
+import { SunIcon, MoonIcon, MonitorSmartphoneIcon, Info } from 'lucide-react';
 
 type ThemeType = 'light' | 'dark' | 'system';
 
@@ -47,19 +47,19 @@ export const GeneralSettingsTab = ({ theme, setTheme }: GeneralSettingsTabProps)
             <SelectContent>
               <SelectItem value="light">
                 <div className="flex items-center gap-2">
-                  <Icon name="light" className="h-4 w-4" />
+                  <SunIcon className="h-4 w-4" />
                   <span>Light</span>
                 </div>
               </SelectItem>
               <SelectItem value="dark">
                 <div className="flex items-center gap-2">
-                  <Icon name="dark" className="h-4 w-4" />
+                  <MoonIcon className="h-4 w-4" />
                   <span>Dark</span>
                 </div>
               </SelectItem>
               <SelectItem value="system">
                 <div className="flex items-center gap-2">
-                  <Icon name="server" className="h-4 w-4" />
+                  <MonitorSmartphoneIcon className="h-4 w-4" />
                   <span>System</span>
                 </div>
               </SelectItem>
@@ -67,7 +67,7 @@ export const GeneralSettingsTab = ({ theme, setTheme }: GeneralSettingsTabProps)
           </Select>
           
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Icon name="help" className="h-4 w-4" />
+            <Info className="h-4 w-4" />
             <span>System theme will follow your device settings</span>
           </div>
         </div>

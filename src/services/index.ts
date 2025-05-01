@@ -1,13 +1,13 @@
-// src/services/pdf-parser.ts
+// src/services/pdf-parser/index.ts
 
-// Define types
-export type PDFInfo = {
+// Define interfaces
+export interface PDFInfo {
   PDFFormatVersion: string;
   IsAcroFormPresent: boolean;
   IsXFAPresent: boolean;
-};
+}
 
-export type PDFParseResult = {
+export interface PDFParseResult {
   text: string;
   numpages: number;
   numrender: number;
@@ -16,14 +16,14 @@ export type PDFParseResult = {
   version: string;
   error?: string;
   suggestion?: string;
-};
+}
 
 // PDF Parser Service
-export const PDFParserService = {
+export class PDFParserService {
   /**
    * Parse PDF with fallback methods
    */
-  parseWithFallback: async (buffer: Buffer): Promise<PDFParseResult> => {
+  static async parseWithFallback(buffer: Buffer): Promise<PDFParseResult> {
     let result: PDFParseResult = {
       text: '',
       numpages: 0,
@@ -64,8 +64,7 @@ export const PDFParserService = {
       
       // Disable worker to avoid serverless issues
       // @ts-ignore - TypeScript doesn't know about this property
-      const workerOptions = pdfjs.GlobalWorkerOptions as { workerSrc: string | false };
-      workerOptions.workerSrc = false;
+      pdfjs.GlobalWorkerOptions.workerSrc = false;
       
       const loadingTask = pdfjs.getDocument({
         data: new Uint8Array(buffer)
@@ -108,8 +107,7 @@ export const PDFParserService = {
       
       // Use CDN-hosted worker
       // @ts-ignore - TypeScript doesn't know about this property
-      const workerOptions = pdfjs.GlobalWorkerOptions as { workerSrc: string };
-      workerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+      pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
       
       const loadingTask = pdfjs.getDocument({
         data: buffer,
@@ -151,12 +149,12 @@ export const PDFParserService = {
     result.suggestion = 'If this is a scanned PDF, try converting it to a text-based PDF using OCR software first.';
     
     return result;
-  },
+  }
 
   /**
    * Validate PDF content
    */
-  validatePDFContent: (text: string): boolean => {
+  static validatePDFContent(text: string): boolean {
     if (!text || text.trim().length === 0) {
       return false;
     }
@@ -175,4 +173,4 @@ export const PDFParserService = {
 
     return true;
   }
-};
+}

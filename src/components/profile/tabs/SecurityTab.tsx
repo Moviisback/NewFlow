@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Icon } from '@/components/ui/icons';
+import { Shield, Mail, FileText, MonitorSmartphone as MonitorIcon } from 'lucide-react';
 
 export const SecurityTab = () => {
   return (
@@ -16,7 +16,7 @@ export const SecurityTab = () => {
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label htmlFor="two-factor" className="flex items-center gap-2">
-              <Icon name="shield" className="h-4 w-4" />
+              <Shield className="h-4 w-4" />
               Two-Factor Authentication
             </Label>
             <p className="text-sm text-muted-foreground">
@@ -29,7 +29,7 @@ export const SecurityTab = () => {
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label htmlFor="email-notifications" className="flex items-center gap-2">
-              <Icon name="mail" className="h-4 w-4" />
+              <Mail className="h-4 w-4" />
               Security Email Notifications
             </Label>
             <p className="text-sm text-muted-foreground">
@@ -42,7 +42,7 @@ export const SecurityTab = () => {
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label htmlFor="activity-log" className="flex items-center gap-2">
-              <Icon name="fileText" className="h-4 w-4" />
+              <FileText className="h-4 w-4" />
               Activity Log
             </Label>
             <p className="text-sm text-muted-foreground">
@@ -55,7 +55,7 @@ export const SecurityTab = () => {
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label htmlFor="device-management" className="flex items-center gap-2">
-              <Icon name="server" className="h-4 w-4" />
+              <MonitorIcon className="h-4 w-4" />
               Device Management
             </Label>
             <p className="text-sm text-muted-foreground">

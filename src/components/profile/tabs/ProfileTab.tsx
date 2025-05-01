@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Icon } from '@/components/ui/icons';
+import { User, Mail, Phone, Loader2, LogOut, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface ProfileTabProps {
@@ -118,7 +118,7 @@ export const ProfileTab = ({ user, onUpdateProfile, onLogout, onDeleteChats, onD
           <div className="space-y-3">
             <div className="space-y-1">
               <Label htmlFor="name" className="flex items-center gap-2">
-                <Icon name="user" className="h-4 w-4" />
+                <User className="h-4 w-4" />
                 Full Name
               </Label>
               <Input
@@ -135,7 +135,7 @@ export const ProfileTab = ({ user, onUpdateProfile, onLogout, onDeleteChats, onD
             
             <div className="space-y-1">
               <Label htmlFor="email" className="flex items-center gap-2">
-                <Icon name="mail" className="h-4 w-4" />
+                <Mail className="h-4 w-4" />
                 Email Address
               </Label>
               <Input
@@ -148,7 +148,7 @@ export const ProfileTab = ({ user, onUpdateProfile, onLogout, onDeleteChats, onD
             
             <div className="space-y-1">
               <Label htmlFor="phone" className="flex items-center gap-2">
-                <Icon name="phone" className="h-4 w-4" />
+                <Phone className="h-4 w-4" />
                 Phone Number
               </Label>
               <Input
@@ -169,7 +169,7 @@ export const ProfileTab = ({ user, onUpdateProfile, onLogout, onDeleteChats, onD
             >
               {isUpdating ? (
                 <>
-                  <Icon name="loader" className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4" />
                   Updating...
                 </>
               ) : (
@@ -182,7 +182,7 @@ export const ProfileTab = ({ user, onUpdateProfile, onLogout, onDeleteChats, onD
               onClick={onLogout}
               className="w-full sm:w-auto"
             >
-              <Icon name="logOut" className="mr-2 h-4 w-4" />
+              <LogOut className="mr-2 h-4 w-4" />
               Log Out
             </Button>
           </div>
@@ -201,7 +201,7 @@ export const ProfileTab = ({ user, onUpdateProfile, onLogout, onDeleteChats, onD
               onClick={onDeleteChats}
               className="w-full sm:w-auto"
             >
-              <Icon name="trash" className="mr-2 h-4 w-4" />
+              <Trash2 className="mr-2 h-4 w-4" />
               Delete All Chats
             </Button>
             
@@ -211,7 +211,7 @@ export const ProfileTab = ({ user, onUpdateProfile, onLogout, onDeleteChats, onD
                   variant="destructive"
                   className="w-full sm:w-auto"
                 >
-                  <Icon name="trash" className="mr-2 h-4 w-4" />
+                  <Trash2 className="mr-2 h-4 w-4" />
                   Delete Account
                 </Button>
               </DialogTrigger>

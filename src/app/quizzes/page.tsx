@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
@@ -26,7 +25,9 @@ import {
   ChevronDown, 
   ChevronUp,
   Lightbulb,
-  Plus
+  Plus,
+  X, // Import X directly instead of using it as Icons.close
+  Loader // Import Loader directly instead of using it as Icons.loader
 } from 'lucide-react';
 
 // Types
@@ -287,7 +288,7 @@ const QuizScreen = () => {
       toast({
         title: "No documents selected",
         description: "Please select at least one document to continue.",
-        variant: "warning",
+        variant: "destructive", // Changed from "warning" to "destructive" for type compatibility
       });
       return;
     }
@@ -437,7 +438,7 @@ const QuizScreen = () => {
     if (isLoadingDocuments) {
       return (
         <div className="flex items-center justify-center py-6">
-          <Icons.loader className="h-8 w-8 animate-spin" />
+          <Loader className="h-8 w-8 animate-spin" /> {/* Changed from Icons.loader to Loader */}
           <span className="ml-2">Loading your documents...</span>
         </div>
       );
@@ -451,9 +452,9 @@ const QuizScreen = () => {
           <Button 
             variant="outline" 
             className="mt-4"
-            onClick={() => window.location.href = '/dashboard'}
+            onClick={() => window.location.href = '/documents'}
           >
-            Go to Dashboard to Upload
+            Go to Documents
           </Button>
         </div>
       );
@@ -835,8 +836,6 @@ const QuizScreen = () => {
                 className={`w-full text-left justify-start px-4 py-3 h-auto ${
                   showFeedback && option === question.correctAnswer 
                     ? 'border-green-500 bg-green-50' 
-                    : showFeedback && option === selectedAnswer && option !== question.correct
-                    ? 'border-green-500 bg-green-50' 
                     : showFeedback && option === selectedAnswer && option !== question.correctAnswer
                       ? 'border-red-500 bg-red-50'
                       : ''
@@ -848,7 +847,7 @@ const QuizScreen = () => {
                   <Check className="h-4 w-4 mr-2 text-green-500" />
                 )}
                 {showFeedback && option === selectedAnswer && option !== question.correctAnswer && (
-                  <Icons.close className="h-4 w-4 mr-2 text-red-500" />
+                  <X className="h-4 w-4 mr-2 text-red-500" />
                 )}
                 <span>{option}</span>
               </Button>
@@ -911,198 +910,99 @@ const QuizScreen = () => {
     );
   };
 
-  // Render loading state for quiz generation
-  const renderLoading = () => (
-    <div className="flex flex-col items-center justify-center py-12">
-      <Icons.loader className="h-12 w-12 animate-spin mb-4" />
-      <h3 className="text-lg font-medium">Generating Your Quiz</h3>
-      <p className="text-gray-500 text-center max-w-xs mt-2">
-        Creating intelligent questions based on your selected topics and documents...
-      </p>
-    </div>
-  );
-
-  // Main render function with optimized rendering flow
   return (
-    <div className="container mx-auto px-4 py-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold flex items-center">
-          <Brain className="h-6 w-6 mr-2 text-primary" />
-          Quiz Builder
-        </h1>
-        <p className="text-gray-500">Generate intelligent quizzes from your study materials</p>
-      </div>
-      
-      {/* Progress Stepper */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between max-w-md mx-auto">
-          <div className="flex flex-col items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              currentStep >= 1 ? 'bg-primary text-white' : 'bg-gray-200'
-            }`}>
-              1
-            </div>
-            <span className="text-xs mt-1">Documents</span>
+    <div className="container mx-auto py-6 px-4 md:px-6">
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Quiz Builder</h1>
+            <p className="text-gray-500">
+              {currentStep === 1 
+                ? "Step 1: Select your study materials" 
+                : currentStep === 2 
+                  ? "Step 2: Configure your quiz"
+                  : "Step 3: Take your quiz"}
+            </p>
           </div>
-          <div className={`h-1 flex-1 mx-1 ${currentStep >= 2 ? 'bg-primary' : 'bg-gray-200'}`} />
-          <div className="flex flex-col items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              currentStep >= 2 ? 'bg-primary text-white' : 'bg-gray-200'
-            }`}>
-              2
+          
+          {currentStep === 2 && (
+            <div className="mt-4 md:mt-0">
+              <div className="flex items-center space-x-2">
+                <Progress value={calculateReadiness()} className="w-24" />
+                <span className="text-sm text-gray-500">{calculateReadiness()}% Ready</span>
+              </div>
             </div>
-            <span className="text-xs mt-1">Setup</span>
-          </div>
-          <div className={`h-1 flex-1 mx-1 ${currentStep >= 3 ? 'bg-primary' : 'bg-gray-200'}`} />
-          <div className="flex flex-col items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              currentStep >= 3 ? 'bg-primary text-white' : 'bg-gray-200'
-            }`}>
-              3
-            </div>
-            <span className="text-xs mt-1">Quiz</span>
-          </div>
+          )}
         </div>
-      </div>
-      
-      {/* Main Content Area */}
-      {isLoading ? (
-        renderLoading()
-      ) : (
-        <>
+        
+        {/* Main content area */}
+        <div className="bg-white rounded-lg shadow-sm border p-4 md:p-6">
           {currentStep === 1 && (
-            <Card className="shadow-md">
-              <CardHeader>
-                <CardTitle>Select Study Materials</CardTitle>
-                <CardDescription>
-                  Choose the documents you want to include in your quiz
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {renderDocumentSelector()}
-              </CardContent>
-              <CardFooter className="flex justify-end">
+            <div className="space-y-4">
+              <h2 className="text-lg font-medium">Select Documents</h2>
+              <p className="text-gray-500 text-sm">Choose documents to generate questions from:</p>
+              {renderDocumentSelector()}
+              
+              <div className="flex justify-end mt-6">
                 <Button 
                   onClick={proceedToQuizSetup}
                   disabled={selectedDocuments.length === 0}
                 >
                   Continue
                 </Button>
-              </CardFooter>
-            </Card>
+              </div>
+            </div>
           )}
           
           {currentStep === 2 && (
-            <Card className="shadow-md">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Customize Your Quiz</CardTitle>
-                    <CardDescription>
-                      Select topics and adjust difficulty
-                    </CardDescription>
-                  </div>
-                  <div>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <div className="flex items-center">
-                            <Progress value={calculateReadiness()} className="w-16 h-2 mr-2" />
-                            <span className="text-xs font-medium">{calculateReadiness()}% Ready</span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="text-xs">Complete setup to generate quiz</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {renderQuizSetup()}
-              </CardContent>
-              <CardFooter className="flex justify-between">
+            <div className="space-y-4">
+              <h2 className="text-lg font-medium">Configure Quiz</h2>
+              <p className="text-gray-500 text-sm">Customize your quiz settings:</p>
+              {renderQuizSetup()}
+              
+              <div className="flex justify-between mt-6">
                 <Button 
                   variant="outline" 
-                  onClick={() => {
-                    setCurrentStep(1);
-                    setIsDocumentSelectionStep(true);
-                  }}
+                  onClick={() => setCurrentStep(1)}
                 >
                   Back
                 </Button>
+                
                 <Button 
                   onClick={generateQuiz}
-                  disabled={selectedTopics.length === 0 || calculateReadiness() < 80}
+                  disabled={selectedTopics.length === 0 || isLoading}
                 >
-                  Generate Quiz
+                  {isLoading ? (
+                    <>
+                      <Loader className="h-4 w-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>Generate Quiz</>
+                  )}
                 </Button>
-              </CardFooter>
-            </Card>
+              </div>
+            </div>
           )}
           
-          {currentStep === 3 && renderQuizContent()}
-        </>
-      )}
-      
-      {/* Feature Highlight */}
-      {currentStep !== 3 && (
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center mb-2">
-                <Zap className="h-5 w-5 text-yellow-500 mr-2" />
-                <h3 className="font-medium">Smart Questions</h3>
-              </div>
-              <p className="text-sm text-gray-500">
-                AI-generated questions target comprehension and critical thinking.
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center mb-2">
-                <Brain className="h-5 w-5 text-purple-500 mr-2" />
-                <h3 className="font-medium">Spaced Repetition</h3>
-              </div>
-              <p className="text-sm text-gray-500">
-                Questions adapt to your learning progress over time.
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center mb-2">
-                <BookOpen className="h-5 w-5 text-blue-500 mr-2" />
-                <h3 className="font-medium">Detailed Explanations</h3>
-              </div>
-              <p className="text-sm text-gray-500">
-                Learn why answers are correct with comprehensive explanations.
-              </p>
-            </CardContent>
-          </Card>
+          {currentStep === 3 && (
+            <div>
+              {renderQuizContent()}
+              
+              {!quizCompleted && (
+                <div className="flex justify-between mt-6">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleResetQuiz}
+                  >
+                    Cancel Quiz
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      )}
-      
-      {/* Add New Quick Quiz button */}
-      {currentStep !== 3 && (
-        <div className="fixed bottom-6 right-6">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button className="h-12 w-12 rounded-full shadow-lg" disabled={selectedDocuments.length === 0}>
-                  <Plus className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">Quick Quiz (5 questions)</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { User, Home, FileText, GraduationCap, BarChart, Calendar, ChevronDown } from 'lucide-react';
+import { User, Home, FileText, GraduationCap, BarChart, Calendar, ChevronDown, LucideIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useTransition, useRef } from 'react';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -149,7 +149,7 @@ const Navigation = () => {
                         >
                           <div className="py-1" role="menu" aria-orientation="vertical">
                             {studyToolsItems.map((subItem) => {
-                              const SubIcon = subItem.icon;
+                              const SubIcon: LucideIcon = subItem.icon;
                               const isActive = pathname === subItem.href;
                               return (
                                 <button
@@ -160,7 +160,7 @@ const Navigation = () => {
                                   }`}
                                   role="menuitem"
                                 >
-                                  <SubIcon className="h-4 w-4 mr-2" />
+                                  <subItem.icon className="h-4 w-4 mr-2" />
                                   {subItem.label}
                                 </button>
                               );
@@ -173,7 +173,7 @@ const Navigation = () => {
                 }
                 
                 // For regular nav items
-                const Icon = item.icon;
+                
                 const isActive = pathname === item.href;
                 return (
                   <Link
@@ -258,7 +258,7 @@ const Navigation = () => {
               {mobileDropdownOpen && (
                 <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                   <div className="py-1" role="menu" aria-orientation="vertical">
-                    {studyToolsItems.map((subItem) => {
+                     {studyToolsItems.map((subItem) => {
                       const SubIcon = subItem.icon;
                       const isActive = pathname === subItem.href;
                       return (
@@ -270,7 +270,7 @@ const Navigation = () => {
                           }`}
                           role="menuitem"
                         >
-                          <SubIcon className="h-4 w-4 mr-2" />
+                           <subItem.icon className="h-4 w-4 mr-2" />
                           {subItem.mobileLabel}
                         </button>
                       );

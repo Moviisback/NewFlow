@@ -4,10 +4,9 @@ import { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Icons } from '@/components/icons';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from "@/hooks/use-toast";
-import { Search, File, FileText, Settings, X, Upload } from 'lucide-react';
+import { Search, File, FileText, Settings, X, Upload, Check, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,8 +15,24 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { summarizeDocumentWithGoogle } from '@/ai/flows/summarize-document-google';
-import { SummaryOptions, AIProvider, SummaryLength, FocusArea } from '@/app/types/summary-options';
+import { AIProvider, SummaryLength, FocusArea } from '@/app/types/summary-options';
 // import { motion } from 'framer-motion'; // Add framer-motion for animations
+
+// Define the SummaryOptions interface here to ensure it's consistent
+interface SummaryOptions {
+  summaryLength: SummaryLength;
+  focusArea: FocusArea;
+  includeQuestions: boolean;
+  simplifyLanguage: boolean;
+  languageLevel: number;
+  aiProvider: AIProvider;
+}
+
+// Creating a simple Icons component to replace the missing one
+const Icons = {
+  check: Check,
+  spinner: Loader2
+};
 
 // Creating an improved EmptyState component with animation
 const EmptyState = ({ onUpload }: { onUpload: () => void }) => {
@@ -115,7 +130,7 @@ const DocumentList = ({
               <Button variant="outline" size="sm" onClick={() => handleDeleteDocument(doc.id)}>
                 Delete
               </Button>
-              {doc.status === 'Failed' && (
+              {doc.status === 'Failed' && doc.fileContent && (
                 <Button variant="outline" size="sm" onClick={() => retryUpload(doc)}>
                   Retry
                 </Button>
@@ -311,11 +326,23 @@ export default function DocumentsPage() {
         // For text files (txt, csv, etc.)
         fileContent = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = () => reject(reader.error);
-          reader.readAsText(selectedFile);
+          reader.onload = () => {
+            if (typeof reader.result === 'string') {
+              resolve(reader.result);
+            } else {
+              reject(new Error('Failed to read file content as text.'));
+            }
+          };
+          reader.onerror = (error) => {
+            reject(error);
+          };
+          if (!selectedFile) {
+            reject(new Error('Selected file is invalid.'));
+          } else {
+            reader.readAsText(selectedFile);
+          }
         });
-      }
+      }      
 
       if (!fileContent) {
         throw new Error('No content extracted from file');
@@ -449,7 +476,7 @@ export default function DocumentsPage() {
           document.fileContent
         );
       } else {
-        throw new Error("No file content available for retry.");
+        throw new Error("No file content available for retry");
       }
     } catch (error: unknown) {
       console.error('Retry Failed:', error);
@@ -557,10 +584,9 @@ export default function DocumentsPage() {
                 <span className="inline-block ml-3">
                   <Icons.spinner className="h-5 w-5 animate-spin" />
                 </span>
-                This might take a minute for larger documents
               </p>
             </div>
-            <p className="text-muted-foreground">Loading documents...</p>
+            <p className="text-muted-foreground">This might take a minute for larger documents</p>
           </div>
         </Card>
       ) : documents.length > 0 ? (
