@@ -1,23 +1,25 @@
 // src/lib/auth-service.ts
-import { useState, useEffect } from 'react';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
   signOut,
-  onAuthStateChanged,
-  updateProfile,
+  updateProfile as updateFirebaseProfile,
   User,
   sendEmailVerification,
   deleteUser,
   EmailAuthProvider,
-  reauthenticateWithCredential
+  reauthenticateWithCredential,
+  UserCredential,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { auth } from './firebase';
+import { doc, getDoc, setDoc, updateDoc, getFirestore } from 'firebase/firestore';
 
 // Initialize Google Auth Provider
 const googleProvider = new GoogleAuthProvider();
+const firestore = getFirestore();
 
 // Define User Profile interface
 export interface UserProfile {
@@ -39,40 +41,50 @@ export interface AuthState {
 
 // Firebase Auth Service
 const firebaseAuthService = {
+  // Expose auth for direct access
+  auth,
+  
   // Handle Email/Password Sign In
-  signInWithEmail: async (email: string, password: string) => {
+  signInWithEmail: async (email: string, password: string): Promise<UserCredential> => {
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      return result.user;
+      return await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       throw error;
     }
   },
 
   // Handle Email/Password Sign Up
-  signUpWithEmail: async (email: string, password: string, name: string) => {
+  signUpWithEmail: async (email: string, password: string, name: string): Promise<UserCredential> => {
     try {
-      const result = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
       // Update the user profile with the provided name
-      await updateProfile(result.user, {
+      await updateFirebaseProfile(userCredential.user, {
         displayName: name
       });
       
       // Send email verification
-      await sendEmailVerification(result.user);
+      await sendEmailVerification(userCredential.user);
+
+      // Create user profile in Firestore
+      const profile = firebaseAuthService.mapUserToProfile(userCredential.user);
+      await firebaseAuthService.saveUserProfile(userCredential.user.uid, profile);
       
-      return result.user;
+      return userCredential;
     } catch (error) {
       throw error;
     }
   },
 
   // Handle Google Sign In
-  signInWithGoogle: async () => {
+  signInWithGoogle: async (): Promise<UserCredential> => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      // Process user data from result
+      
+      // Save user profile to Firestore if it's their first login
+      const profile = firebaseAuthService.mapUserToProfile(result.user);
+      await firebaseAuthService.saveUserProfile(result.user.uid, profile);
+      
       return result;
     } catch (error) {
       console.error("Google sign-in error:", error);
@@ -81,20 +93,28 @@ const firebaseAuthService = {
   },
 
   // Sign Out
-  signOut: async () => {
+  signOut: async (): Promise<void> => {
     try {
       await signOut(auth);
-      return true;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Send password reset email
+  sendPasswordReset: async (email: string): Promise<void> => {
+    try {
+      await sendPasswordResetEmail(auth, email);
     } catch (error) {
       throw error;
     }
   },
 
   // Delete Account
-  deleteAccount: async (password?: string) => {
+  deleteUserAccount: async (password?: string): Promise<void> => {
     try {
       const user = auth.currentUser;
-      if (!user) return false;
+      if (!user) throw new Error("No authenticated user");
 
       // If password is provided, reauthenticate first
       if (password && user.email) {
@@ -103,42 +123,66 @@ const firebaseAuthService = {
       }
 
       await deleteUser(user);
-      return true;
     } catch (error) {
       throw error;
     }
   },
 
   // Update User Profile
-  updateUserProfile: async (displayName: string) => {
+  updateUserProfile: async (userId: string, data: Partial<UserProfile>): Promise<void> => {
     try {
       const user = auth.currentUser;
-      if (user) {
-        await updateProfile(user, {
-          displayName: displayName
+      if (!user) throw new Error("No authenticated user");
+
+      // Update displayName in Firebase Auth if provided
+      if (data.name) {
+        await updateFirebaseProfile(user, {
+          displayName: data.name
         });
-        return true;
       }
-      return false;
+
+      // Update profile in Firestore
+      await updateDoc(doc(firestore, 'users', userId), { ...data });
     } catch (error) {
       throw error;
     }
   },
 
-  // Convert Firebase User to UserProfile
-  mapUserToProfile: (user: User | null): UserProfile => {
-    if (!user) {
-      return {
-        id: "",
-        name: "",
-        email: "",
-        phone: "",
-        photoUrl: "",
-        verified: false,
-        provider: ""
-      };
+  // Get user profile from Firestore
+  getUserProfile: async (userId: string): Promise<UserProfile | null> => {
+    try {
+      const userDoc = await getDoc(doc(firestore, 'users', userId));
+      if (userDoc.exists()) {
+        return userDoc.data() as UserProfile;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error getting user profile:", error);
+      return null;
     }
+  },
 
+  // Save user profile to Firestore
+  saveUserProfile: async (userId: string, profile: UserProfile): Promise<void> => {
+    try {
+      const userRef = doc(firestore, 'users', userId);
+      const userDoc = await getDoc(userRef);
+      
+      if (!userDoc.exists()) {
+        // Create new profile if it doesn't exist
+        await setDoc(userRef, profile);
+      } else {
+        // Update existing profile
+        await updateDoc(userRef, { ...profile });
+      }
+    } catch (error) {
+      console.error("Error saving user profile:", error);
+      throw error;
+    }
+  },
+
+  // Convert Firebase User to UserProfile
+  mapUserToProfile: (user: User): UserProfile => {
     // Determine authentication provider
     let provider = "password";
     if (user.providerData.length > 0) {
@@ -154,38 +198,6 @@ const firebaseAuthService = {
       verified: user.emailVerified,
       provider: provider
     };
-  },
-
-  // Hook to get current user state
-  useAuth: () => {
-    const [authState, setAuthState] = useState<AuthState>({
-      loading: true,
-      authenticated: false,
-      profile: {
-        id: "",
-        name: "",
-        email: "",
-        phone: "",
-        photoUrl: "",
-        verified: false,
-        provider: ""
-      }
-    });
-
-    useEffect(() => {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        setAuthState({
-          loading: false,
-          authenticated: !!user,
-          profile: firebaseAuthService.mapUserToProfile(user)
-        });
-      });
-
-      // Cleanup subscription on unmount
-      return () => unsubscribe();
-    }, []);
-
-    return authState;
   }
 };
 

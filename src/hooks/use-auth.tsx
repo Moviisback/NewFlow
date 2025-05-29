@@ -1,7 +1,7 @@
 // src/hooks/use-auth.tsx
 "use client";
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User } from 'firebase/auth';
+import { User, onAuthStateChanged } from 'firebase/auth';
 import firebaseAuthService, { UserProfile, AuthState } from '@/lib/auth-service';
 
 // Default auth state
@@ -11,7 +11,10 @@ const defaultAuthState: AuthState = {
     id: '',
     name: '',
     email: '',
-    verified: false
+    phone: '',
+    photoUrl: '',
+    verified: false,
+    provider: ''
   },
   loading: true
 };
@@ -45,24 +48,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const unsubscribe = firebaseAuthService.onAuthStateChanged(async (user) => {
-      if (user) {
+    const unsubscribe = onAuthStateChanged(firebaseAuthService.auth, async (currentUser) => {
+      if (currentUser) {
         // User is signed in
-        setUser(user);
+        setUser(currentUser);
         
-        // Get user profile from Firestore
-        const profile = await firebaseAuthService.getUserProfile(user.uid);
-        
-        setAuthState({
-          authenticated: true,
-          profile: profile || {
-            id: user.uid,
-            name: user.displayName || '',
-            email: user.email || '',
-            verified: user.emailVerified
-          },
-          loading: false
-        });
+        try {
+          // Get user profile from Firestore
+          const profile = await firebaseAuthService.getUserProfile(currentUser.uid);
+          
+          setAuthState({
+            authenticated: true,
+            profile: profile || firebaseAuthService.mapUserToProfile(currentUser),
+            loading: false
+          });
+        } catch (error) {
+          console.error("Error getting user profile:", error);
+          // Set default profile with current user data
+          setAuthState({
+            authenticated: true,
+            profile: firebaseAuthService.mapUserToProfile(currentUser),
+            loading: false
+          });
+        }
       } else {
         // User is signed out
         setUser(null);
@@ -77,24 +85,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
-  // Authentication methods
-  const login = async (email: string, password: string) => {
-    return await firebaseAuthService.signInWithEmail(email, password);
+  // Authentication methods with proper return types
+  const login = async (email: string, password: string): Promise<User> => {
+    const userCredential = await firebaseAuthService.signInWithEmail(email, password);
+    return userCredential.user;
   };
 
-  const loginWithGoogle = async () => {
-    return await firebaseAuthService.signInWithGoogle();
+  const loginWithGoogle = async (): Promise<User> => {
+    const userCredential = await firebaseAuthService.signInWithGoogle();
+    return userCredential.user;
   };
 
-  const signup = async (email: string, password: string, name: string) => {
-    return await firebaseAuthService.signUpWithEmail(email, password, name);
+  const signup = async (email: string, password: string, name: string): Promise<User> => {
+    const userCredential = await firebaseAuthService.signUpWithEmail(email, password, name);
+    return userCredential.user;
   };
 
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     await firebaseAuthService.signOut();
   };
 
-  const updateProfile = async (data: Partial<UserProfile>) => {
+  const updateProfile = async (data: Partial<UserProfile>): Promise<void> => {
     if (!user) throw new Error('No authenticated user');
     await firebaseAuthService.updateUserProfile(user.uid, data);
     
@@ -108,11 +119,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
-  const sendPasswordResetEmail = async (email: string) => {
+  const sendPasswordResetEmail = async (email: string): Promise<void> => {
     await firebaseAuthService.sendPasswordReset(email);
   };
 
-  const deleteAccount = async (password?: string) => {
+  const deleteAccount = async (password?: string): Promise<void> => {
     await firebaseAuthService.deleteUserAccount(password);
   };
 

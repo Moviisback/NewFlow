@@ -9,10 +9,34 @@ export async function GET() {
     const quizzesTaken = null; // await getQuizzesTaken();
     const averageScore = quizzesTaken === null ? null : 85; //  await getAverageScore();
 
+    // Add recent documents data
+    // In production, you would fetch this from your database
+    const recentDocuments = documentCount > 0 ? [
+      {
+        id: '1',
+        title: 'JavaScript Fundamentals', // Changed from 'name' to 'title' to match our component
+        createdAt: '2025-04-20T10:00:00Z', // Changed from 'uploadDate' to 'createdAt'
+        type: 'pdf'
+      },
+      {
+        id: '2',
+        title: 'React Hooks Guide',
+        createdAt: '2025-04-22T14:30:00Z',
+        type: 'doc'
+      },
+      {
+        id: '3',
+        title: 'TypeScript Advanced Features',
+        createdAt: '2025-04-24T09:15:00Z',
+        type: 'txt'
+      }
+    ] : [];
+
     const dashboardData = {
       documentCount: documentCount || null, // Return null if no documents
       quizzesTaken: quizzesTaken,
       averageScore: averageScore, // Return null if no quizzes taken
+      recentDocuments: recentDocuments // Add recent documents to the response
     };
     return NextResponse.json({ success: true, data: dashboardData });
   } catch (error) {
