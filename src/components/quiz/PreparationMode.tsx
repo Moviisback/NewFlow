@@ -835,10 +835,7 @@ const PreparationMode: React.FC<PreparationModeProps> = ({
       // Highlight key concepts
       concepts.forEach(concept => {
         if (concept.length > 2) {
-          const escapedConcept = concept.replace(/[.*+?^${}()|[\]\\]/g, '\\  // Complete the current chunk
-  const completeChunk = useCallback(() => {
-    const correctAnswers = answers.filter(a => a.isCorrect).length;
-    const score = answers');
+          const escapedConcept = concept.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
           const regex = new RegExp(`\\b(${escapedConcept})\\b`, 'gi');
           processed = processed.replace(regex, '`$1`');
         }
